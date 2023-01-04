@@ -5,13 +5,15 @@ from pathlib import Path
 import cv2
 import torch
 import torch.backends.cudnn as cudnn
+import numpy as np
+
 from numpy import random
 
 from models.experimental import attempt_load
 from utils.datasets import LoadStreams, LoadImages
 from utils.general import check_img_size, check_requirements, check_imshow, non_max_suppression, apply_classifier, \
     scale_coords, xyxy2xywh, strip_optimizer, set_logging, increment_path
-from utils.plots import plot_one_box
+from utils.plots import plot_one_box, plot_one_box_scatter
 from utils.torch_utils import select_device, load_classifier, time_synchronized
 
 
@@ -98,9 +100,12 @@ def detect(save_img=False):
                 # Print results
                 for c in det[:, -1].unique():
                     n = (det[:, -1] == c).sum()  # detections per class
+                    text_result = f"result: {n}"
                     s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
 
                 # Write results
+                img_1 = np.zeros([im0.shape[0],im0.shape[1],1],dtype=np.uint8)
+                img_1.fill(255)
                 for *xyxy, conf, cls in reversed(det):
                     if save_txt:  # Write to file
                         xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
@@ -110,7 +115,14 @@ def detect(save_img=False):
 
                     if save_img or view_img:  # Add bbox to image
                         label = f'{names[int(cls)]} {conf:.2f}'
-                        plot_one_box(xyxy, im0, label=label, color=colors[int(cls)], line_thickness=3)
+                        text_result = f"Result: {len(det)}"
+                        # plotar as imagens com os pits
+                        plot_one_box(xyxy, im0, label=label, color=colors[int(cls)], line_thickness=3, text=text_result)
+                        # plotar imagens em preto e branco
+                        plot_one_box_scatter(xyxy, img_1, label=label, color=colors[int(cls)], line_thickness=3)
+
+
+
 
             # Print time (inference + NMS)
             print(f'{s}Done. ({t2 - t1:.3f}s)')
@@ -124,6 +136,8 @@ def detect(save_img=False):
             if save_img:
                 if dataset.mode == 'image':
                     cv2.imwrite(save_path, im0)
+                    # print(f"save_path: {save_path[:-4]}")
+                    cv2.imwrite(f"{save_path[:-4]}_scatter.jpg", img_1)
                 else:  # 'video'
                     if vid_path != save_path:  # new video
                         vid_path = save_path
