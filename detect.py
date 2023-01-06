@@ -13,7 +13,7 @@ from models.experimental import attempt_load
 from utils.datasets import LoadStreams, LoadImages
 from utils.general import check_img_size, check_requirements, check_imshow, non_max_suppression, apply_classifier, \
     scale_coords, xyxy2xywh, strip_optimizer, set_logging, increment_path
-from utils.plots import plot_one_box, plot_one_box_scatter
+from utils.plots import plot_one_box, plot_one_box_scatter, get_area
 from utils.torch_utils import select_device, load_classifier, time_synchronized
 
 
@@ -83,6 +83,7 @@ def detect(save_img=False):
 
         # Process detections
         for i, det in enumerate(pred):  # detections per image
+            area=0
             if webcam:  # batch_size >= 1
                 p, s, im0, frame = path[i], '%g: ' % i, im0s[i].copy(), dataset.count
             else:
@@ -106,6 +107,14 @@ def detect(save_img=False):
                 # Write results
                 img_1 = np.zeros([im0.shape[0],im0.shape[1],1],dtype=np.uint8)
                 img_1.fill(255)
+                print("")
+                for *xyxy, conf, cls in reversed(det):
+                    #plotar area
+                    area += get_area(xyxy)
+                    area_isolada = get_area(xyxy)
+                    print(f'AREA de cada quadrado: {area_isolada}')
+                    print(f'AREA TOTAL DA IMAGEM: {area}')
+
                 for *xyxy, conf, cls in reversed(det):
                     if save_txt:  # Write to file
                         xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
@@ -114,10 +123,12 @@ def detect(save_img=False):
                             f.write(('%g ' * len(line)).rstrip() % line + '\n')
 
                     if save_img or view_img:  # Add bbox to image
+
                         label = f'{names[int(cls)]} {conf:.2f}'
                         text_result = f"Result: {len(det)}"
+                        area_total = f'Area: {str(int(area.item()))} px'
                         # plotar as imagens com os pits
-                        plot_one_box(xyxy, im0, label=label, color=colors[int(cls)], line_thickness=3, text=text_result)
+                        plot_one_box(xyxy, im0, label=label, color=colors[int(cls)], line_thickness=3, text=text_result,text_area=area_total)
                         # plotar imagens em preto e branco
                         plot_one_box_scatter(xyxy, img_1, label=label, color=colors[int(cls)], line_thickness=3)
 
