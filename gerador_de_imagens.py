@@ -1,4 +1,5 @@
 import cv2
+import os
 
 # def plot_one_box(x, img, color=None, label=None, line_thickness=3, text=None, text_area=None):
 #     # Plots one bounding box on image img
@@ -22,7 +23,9 @@ def plot_one_box(box, img, color=None, label=None, line_thickness=None):
         # Use a default line thickness of 2
         line_thickness = 2
     # Draw the bounding box on the image
-    cv2.rectangle(img, (int(xmin), int(ymin)), (int(xmax), int(ymax)), color, line_thickness)
+    # cv2.rectangle(img, (int(xmin), int(ymin)), (int(xmax), int(ymax)), color, line_thickness)
+    cv2.rectangle(img, (int(xmin), int(ymin)), (int(xmax), int(ymax)), color, -1, lineType=cv2.LINE_AA)
+    # cv2.rectangle(img, c1, c2, color, -1, lineType=cv2.LINE_AA)
     # Check if a label is provided
     if label is not None:
         # Get the size of the label text
@@ -37,48 +40,58 @@ def plot_one_box(box, img, color=None, label=None, line_thickness=None):
         # Draw the label on the image
         cv2.putText(img, label, (label_x, label_y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, line_thickness)
 
-# Load the image
-img = cv2.imread("pitting-10/test/images/11_01_02_png.rf.9f1e0362c8686a0597b346691bee52e1.jpg")
 
-# Get the width and height of the image
-height_1, width_1, _ = img.shape
+images = os.listdir('pitting-10/test/images')
+for count, image in enumerate(images, start=1):
 
-# Open the label file
-with open("pitting-10/test/labels/11_01_02_png.rf.9f1e0362c8686a0597b346691bee52e1.txt", "r") as f:
+  print('')
+  print(f"{count}: pitting-10/test/images/{image}")
+  # Load the image
+  img = cv2.imread(f"pitting-10/test/images/{image}")
 
-  # Read the lines in the file
-  labels = f.readlines()
+  # Get the width and height of the image
+  height_1, width_1, _ = img.shape
 
-  
-  # Loop through the labels
-  for label in labels:
-      # Split the label into coordinates
-      one_line, x, y, width, height = label.split()
+  label_path = f'{image}'[:-3] +'txt'
+  # Open the label file
+  with open(f"pitting-10/test/labels/{label_path}", "r") as f:
 
-      # Convert the string coordinates to float values
-      x = float(x)
-      y = float(y)
-      width = float(width)
-      height = float(height)
+    # Read the lines in the file
+    labels = f.readlines()
 
-      # print(x,y,width,height)
+    
+    # Loop through the labels
+    for label in labels:
+        # Split the label into coordinates
+        one_line, x, y, width, height = label.split()
+
+        # Convert the string coordinates to float values
+        x = float(x)
+        y = float(y)
+        width = float(width)
+        height = float(height)
+
+        # print(x,y,width,height)
 
 
-      # Convert the normalized coordinates to pixels
-      x = int(x * width_1)
-      y = int(y * height_1)
-      w = int(width * width_1)
-      h = int(height * height_1)
+        # Convert the normalized coordinates to pixels
+        x = int(x * width_1)
+        y = int(y * height_1)
+        w = int(width * width_1)
+        h = int(height * height_1)
+        
+        print(x-(w/2), y-(h/2), x+(w/2)+2, y+(h/2)+2)
+        # Draw the bounding box on the image
+        # if x+(w/2)+2 and y+(h/2)+2 < 400:
+        plot_one_box([x-(w/2), y-(h/2), x+(w/2)+2, y+(h/2)+2], img, color=[255, 0, 0])
 
-      print(x,y,w,h)
-      x=100
-      y=110
-      w=20
-      h=10
 
-      
-      print(x-w, y-h, x+w, y+h)
-      # Draw the bounding box on the image
-      plot_one_box([x-(w/2), y-(h/2), x+(w/2), y+(h/2)], img, color=[255, 0, 0])
+  # checking if the directory demo_folder 
+  # exist or not.
+  if not os.path.exists("/content/Corrosaov5/output"):
+  # if the demo_folder directory is not present 
+  # then create it.
+        os.makedirs("/content/Corrosaov5/output")
+        
 
-cv2.imwrite("/content/Corrosaov5/output/image.jpg", img)
+  cv2.imwrite(f"/content/Corrosaov5/output/{image}", img)

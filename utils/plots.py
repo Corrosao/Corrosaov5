@@ -108,6 +108,35 @@ def plot_one_box(x, img, color=None, label=None, line_thickness=3, text=None, te
         #cv2.rectangle(img, c1, c2, color, -1, cv2.LINE_AA)  # filled
         # cv2.putText(img, label, (c1[0], c1[1] - 2), 0, tl / 3, [225, 255, 255], thickness=tf, lineType=cv2.LINE_AA)
 
+def plot_one_box_lsm(box, img, color=None, label=None, line_thickness=None):
+    # Get the coordinates of the bounding box
+    xmin, ymin, xmax, ymax = box
+    # Check if a color is specified
+    if color is None:
+        # Use blue as the default color
+        color = [255, 0, 0]
+    # Check if a line thickness is specified
+    if line_thickness is None:
+        # Use a default line thickness of 2
+        line_thickness = 2
+    # Draw the bounding box on the image
+    # cv2.rectangle(img, (int(xmin), int(ymin)), (int(xmax), int(ymax)), color, line_thickness)
+    cv2.rectangle(img, (int(xmin), int(ymin)), (int(xmax), int(ymax)), color, -1, lineType=cv2.LINE_AA)
+    # cv2.rectangle(img, c1, c2, color, -1, lineType=cv2.LINE_AA)
+    # Check if a label is provided
+    if label is not None:
+        # Get the size of the label text
+        text_size = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)[0]
+        # Calculate the coordinates for the label
+        label_x = int(xmin)
+        label_y = int(ymin) - int(text_size[1]) - 3
+        # Check if the label will be drawn outside the image
+        if label_y < 0:
+            # Shift the label down so it is drawn within the image
+            label_y = int(ymin) + int(text_size[1]) + 3
+        # Draw the label on the image
+        cv2.putText(img, label, (label_x, label_y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, line_thickness)
+
 def get_area(x):
   # x is a list with the bounding box coordinates [x1, y1, x2, y2]
   width = x[2] - x[0]
