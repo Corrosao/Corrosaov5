@@ -121,7 +121,7 @@ def detect(save_img=False):
                     if save_img or view_img:  # Add bbox to image
                         
                         # plotar as imagens com os pits quadrado prenchido sem results
-                        plot_one_box_lsm(xyxy, im0, color=colors[int(cls)])
+                        plot_one_box_lsm(xyxy, im0, color=[0, 0, 255])
 
 
 
